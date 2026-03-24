@@ -11,10 +11,10 @@ def cmd_exit() -> None:
     sys.exit(0)
 
 
-def cmd_type(command: str) -> str:
-    if command in BUILTIN_COMMANDS:
-        return f"{command} is a shell function"
-    return f"{command}: not found"
+def cmd_type(args: list[str]) -> str:
+    if args[0] in BUILTIN_COMMANDS:
+        return f"{args[0]} is a shell function"
+    return f"{args[0]}: not found"
 
 
 def repl_read() -> list[str]:
@@ -34,7 +34,7 @@ def repl_eval(args: list[str]) -> str:
         case "exit":
             cmd_exit()
         case "type":
-            response = cmd_type(command)
+            response = cmd_type(args)
         case _:
             response = f"{command}: command not found"
     return response
