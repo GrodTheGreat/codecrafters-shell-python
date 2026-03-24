@@ -3,8 +3,8 @@ import sys
 VALID_COMMANDS = ["echo", "exit"]
 
 
-def echo(arg: str) -> None:
-    print(arg)
+def echo(args: list[str]) -> None:
+    print(" ".join(args))
 
 
 def exit() -> None:
@@ -22,10 +22,7 @@ def repl_eval(command: list[str]) -> None:
         return
     match command:
         case "echo":
-            arg = ""
-            if length > 1:
-                arg = command[1]
-            echo(arg)
+            echo(command[1:])
         case "exit":
             exit()
         case _:
