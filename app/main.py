@@ -1,3 +1,5 @@
+import os
+import pathlib
 import sys
 
 BUILTIN_COMMANDS = ["echo", "exit", "type"]
@@ -11,10 +13,22 @@ def cmd_exit() -> None:
     sys.exit(0)
 
 
-def cmd_type(args: list[str]) -> str:
-    if args[0] in BUILTIN_COMMANDS:
-        return f"{args[0]} is a shell builtin"
-    return f"{args[0]}: not found"
+def cmd_type(arg: str) -> str:
+    if arg in BUILTIN_COMMANDS:
+        return f"{arg} is a shell builtin"
+    path_env = os.getenv("PATH")
+    if path_env is None:
+        raise Exception("PATH env not set")
+    path_segments = path_env.split(os.pathsep)
+    path_dirs = list(map(lambda p: pathlib.Path(p).resolve(), path_segments))
+    for dir in path_dirs:
+        if os.access(dir, os.X_OK):
+            for file in dir.iterdir():
+                if not file.is_file():
+                    continue
+                if file.name == arg and os.access(file, os.X_OK):
+                    return f"{arg} is {file}"
+    return f"{arg}: not found"
 
 
 def repl_read() -> list[str]:
@@ -34,7 +48,7 @@ def repl_eval(args: list[str]) -> str:
         case "exit":
             cmd_exit()
         case "type":
-            response = cmd_type(args)
+            response = cmd_type((args[:1] or [""])[0])
         case _:
             response = f"{command}: command not found"
     return response
