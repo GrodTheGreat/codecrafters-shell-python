@@ -1,19 +1,31 @@
 import sys
 
-VALID_COMMANDS = ["exit"]
+VALID_COMMANDS = ["echo", "exit"]
+
+
+def echo(arg: str) -> None:
+    print(arg)
 
 
 def exit() -> None:
     sys.exit(0)
 
 
-def repl_read() -> str:
+def repl_read() -> list[str]:
     command = input("$ ")
-    return command
+    return command.split()
 
 
-def repl_eval(command: str) -> None:
+def repl_eval(command: list[str]) -> None:
+    length = len(command)
+    if length == 0:
+        return
     match command:
+        case "echo":
+            arg = ""
+            if length > 1:
+                arg = command[1]
+            echo(arg)
         case "exit":
             exit()
         case _:
