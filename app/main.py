@@ -1,14 +1,20 @@
 import sys
 
-VALID_COMMANDS = ["echo", "exit"]
+BUILTIN_COMMANDS = ["echo", "exit", "type"]
 
 
-def echo(args: list[str]) -> None:
-    print(" ".join(args))
+def cmd_echo(args: list[str]) -> str:
+    return " ".join(args)
 
 
-def exit() -> None:
+def cmd_exit() -> None:
     sys.exit(0)
+
+
+def cmd_type(command: str) -> str:
+    if command in BUILTIN_COMMANDS:
+        return f"{command} is a shell function"
+    return f"{command}: not found"
 
 
 def repl_read() -> list[str]:
@@ -16,17 +22,22 @@ def repl_read() -> list[str]:
     return command.split()
 
 
-def repl_eval(command: list[str]) -> None:
-    length = len(command)
+def repl_eval(args: list[str]) -> str:
+    response = ""
+    length = len(args)
     if length == 0:
-        return
-    match command[0]:
+        return response
+    command = args.pop(0)
+    match command:
         case "echo":
-            echo(command[1:])
+            response = cmd_echo(args)
         case "exit":
-            exit()
+            cmd_exit()
+        case "type":
+            response = cmd_type(command)
         case _:
-            print(f"{command[0]}: command not found")
+            response = f"{command}: command not found"
+    return response
 
 
 def repl_print():
@@ -36,8 +47,8 @@ def repl_print():
 
 def main():
     while True:
-        command = repl_read()
-        repl_eval(command=command)
+        args = repl_read()
+        repl_eval(args=args)
 
 
 if __name__ == "__main__":
