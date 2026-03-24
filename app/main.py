@@ -1,41 +1,54 @@
 import os
-import pathlib
 import subprocess
 import sys
-
-BUILTIN_COMMANDS = ["echo", "exit", "type"]
-
-
-def cmd_echo(args: list[str]) -> str:
-    return " ".join(args)
+from pathlib import Path
+from typing import Protocol
 
 
-def cmd_exit(_: list[str]) -> None:
-    sys.exit(0)
+class Command(Protocol):
+    def __call__(self, args: list[str]) -> None: ...
 
 
-def cmd_type(args: list[str]) -> str:
-    arg = ""
-    if len(args) > 0:
-        arg = args[0]
-    if arg in BUILTIN_COMMANDS:
-        return f"{arg} is a shell builtin"
-    path_env = os.getenv("PATH")
-    if path_env is None:
-        raise Exception("PATH env not set")
-    path_segments = path_env.split(os.pathsep)
-    path_dirs = list(map(lambda p: pathlib.Path(p).resolve(), path_segments))
-    for dir in path_dirs:
-        if os.access(dir, os.X_OK):
-            for file in dir.iterdir():
-                if not file.is_file():
-                    continue
-                if file.name == arg and os.access(file, os.X_OK):
-                    return f"{arg} is {file}"
-    return f"{arg}: not found"
+def resolve_executable(name: str) -> Path | None:
+    path = os.getenv("PATH", "")
+    for segment in path.split(os.pathsep):
+        directory = Path(segment).resolve()
+        candidate = directory / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    return None
 
 
-BUILTINS = {"echo": cmd_echo, "exit": cmd_exit, "type": cmd_type}
+def cmd_echo(args: list[str]) -> None:
+    print(" ".join(args))
+
+
+def cmd_exit(args: list[str]) -> None:
+    code = int(args[0]) if args else 0
+    sys.exit(code)
+
+
+def cmd_pwd(args: list[str]) -> None:
+    current_directory = Path.cwd().resolve()
+    print(current_directory)
+
+
+def cmd_type(args: list[str]) -> None:
+    name = args[0] if args else ""
+    if name in BUILTINS:
+        print(f"{name} is a shell builtin")
+    elif executable := resolve_executable(name):
+        print(f"{name} is {executable}")
+    else:
+        print(f"{name}: not found")
+
+
+BUILTINS: dict[str, Command] = {
+    "echo": cmd_echo,
+    "exit": cmd_exit,
+    "pwd": cmd_pwd,
+    "type": cmd_type,
+}
 
 
 def repl_read() -> list[str]:
@@ -44,39 +57,22 @@ def repl_read() -> list[str]:
 
 
 def repl_eval(args: list[str]) -> str | None:
-    length = len(args)
-    if length == 0:
-        return ""
-    command = args[0]
-    if command in BUILTINS:
-        cmd_args = args[1:]
-        return BUILTINS[command](cmd_args)
-    path_env = os.getenv("PATH")
-    if path_env is None:
-        raise Exception("PATH env not set")
-    path_segments = path_env.split(os.pathsep)
-    path_dirs = list(map(lambda p: pathlib.Path(p).resolve(), path_segments))
-    for dir in path_dirs:
-        if os.access(dir, os.X_OK):
-            for file in dir.iterdir():
-                if not file.is_file():
-                    continue
-                if file.name == command and os.access(file, os.X_OK):
-                    subprocess.run(args)
-                    return None
-    return f"{command}: command not found"
-
-
-def repl_print(response: str) -> None:
-    print(response)
+    if not args:
+        return
+    cmd, *cmd_args = args
+    if cmd in BUILTINS:
+        BUILTINS[cmd](cmd_args)
+        return
+    executable = resolve_executable(cmd)
+    if executable and os.access(executable, os.X_OK):
+        subprocess.run(args)
+        return
+    print(f"{cmd}: command not found")
 
 
 def main():
     while True:
-        args = repl_read()
-        response = repl_eval(args=args)
-        if response:
-            repl_print(response=response)
+        repl_eval(repl_read())
 
 
 if __name__ == "__main__":
