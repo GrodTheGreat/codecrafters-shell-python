@@ -40,15 +40,15 @@ def repl_eval(args: list[str]) -> str:
     return response
 
 
-def repl_print():
-    # Is there any point in this function?
-    pass
+def repl_print(response: str) -> None:
+    print(response)
 
 
 def main():
     while True:
         args = repl_read()
-        repl_eval(args=args)
+        response = repl_eval(args=args)
+        repl_print(response=response)
 
 
 if __name__ == "__main__":
