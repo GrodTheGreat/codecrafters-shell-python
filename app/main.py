@@ -26,7 +26,7 @@ def repl_eval(command: list[str]) -> None:
         case "exit":
             exit()
         case _:
-            print(f"{command}: command not found")
+            print(f"{command[0]}: command not found")
 
 
 def repl_print():
