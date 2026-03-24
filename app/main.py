@@ -13,7 +13,7 @@ def cmd_exit() -> None:
 
 def cmd_type(args: list[str]) -> str:
     if args[0] in BUILTIN_COMMANDS:
-        return f"{args[0]} is a shell function"
+        return f"{args[0]} is a shell builtin"
     return f"{args[0]}: not found"
 
 
