@@ -20,7 +20,7 @@ def repl_eval(command: list[str]) -> None:
     length = len(command)
     if length == 0:
         return
-    match command:
+    match command[0]:
         case "echo":
             echo(command[1:])
         case "exit":
