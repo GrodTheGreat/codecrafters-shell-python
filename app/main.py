@@ -1,13 +1,24 @@
-import sys
-
 VALID_COMMANDS = []
 
 
-def main():
-    sys.stdout.write("$ ")
-    command = input()
+def repl_read() -> str:
+    command = input("$ ")
+    return command
+
+
+def repl_eval(command: str) -> None:
     if command not in VALID_COMMANDS:
         print(f"{command}: command not found")
+
+
+def repl_print():
+    pass
+
+
+def main():
+    while True:
+        command = repl_read()
+        repl_eval(command=command)
 
 
 if __name__ == "__main__":
