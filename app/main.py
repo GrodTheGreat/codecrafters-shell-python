@@ -1,4 +1,10 @@
-VALID_COMMANDS = []
+import sys
+
+VALID_COMMANDS = ["exit"]
+
+
+def exit() -> None:
+    sys.exit(0)
 
 
 def repl_read() -> str:
@@ -7,11 +13,15 @@ def repl_read() -> str:
 
 
 def repl_eval(command: str) -> None:
-    if command not in VALID_COMMANDS:
-        print(f"{command}: command not found")
+    match command:
+        case "exit":
+            exit()
+        case _:
+            print(f"{command}: command not found")
 
 
 def repl_print():
+    # Is there any point in this function?
     pass
 
 
