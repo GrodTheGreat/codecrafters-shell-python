@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from commands import BUILTINS, resolve_executable
+from .commands import BUILTINS, resolve_executable
 
 
 def repl_read() -> list[str]:
