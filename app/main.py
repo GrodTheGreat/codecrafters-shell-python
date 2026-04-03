@@ -1,4 +1,3 @@
-import os
 import subprocess
 
 from .commands import BUILTINS, resolve_executable
@@ -17,7 +16,7 @@ def repl_eval(args: list[str]) -> str | None:
         BUILTINS[cmd](cmd_args)
         return
     executable = resolve_executable(cmd)
-    if executable and os.access(executable, os.X_OK):
+    if executable:
         subprocess.run(args)
     else:
         print(f"{cmd}: command not found")

@@ -10,7 +10,7 @@ class Command(Protocol):
 
 def cmd_cd(args: list[str]) -> None:
     target = args[0] if args else None
-    if target is None or target == "~":
+    if not target or target == "~":
         target = Path.home()
     resolved_path = Path(target).resolve()
     if not resolved_path.exists():
@@ -39,7 +39,7 @@ def cmd_type(args: list[str]) -> None:
         print(f"{name} is a shell builtin")
     elif executable := resolve_executable(name):
         print(f"{name} is {executable}")
-    else:
+    elif name:
         print(f"{name}: not found")
 
 
