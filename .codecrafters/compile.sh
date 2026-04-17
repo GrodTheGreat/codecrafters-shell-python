@@ -9,3 +9,4 @@
 set -e # Exit on failure
 
 # (This file is empty since Python programs don't use a compile step)
+uv pip install -e .
