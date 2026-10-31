@@ -1,9 +1,30 @@
+from dataclasses import dataclass
+
+
+@dataclass
+class PlainPart:
+    value: str
+
+
+@dataclass
+class SingleQuotePart:
+    value: str
+
+
+@dataclass
+class DoubleQuotePart:
+    value: str
+
+
+Part = PlainPart | SingleQuotePart | DoubleQuotePart
+
+
 class Parser:
     def __init__(self) -> None:
         self.line = ""
         self.current = 0
         self.words = []
-        self.parts = []
+        self.parts: list[Part] = []
 
     def parse(self, line: str) -> list[str]:
         self.__init__()
@@ -19,12 +40,13 @@ class Parser:
         for word in self.words:
             w = ""
             for part in word:
-                if part[0] in "'\"":
-                    # TODO this probably needs to eb more robust
-                    # Parts as ADTs?
-                    w += part[1:-1]
-                else:
-                    w += part
+                match part:
+                    case PlainPart(value):
+                        w += "".join([c for c in value if c != "\\"])
+                    case SingleQuotePart(value):
+                        w += "".join([c for c in value[1:-1]])
+                    case DoubleQuotePart(value):
+                        w += "".join([c for c in value[1:-1]])
             words.append(w)
         return words
 
@@ -48,7 +70,7 @@ class Parser:
             if self.peek() == "\\":
                 self.advance()
             self.advance()
-        self.parts.append(self.line[start : self.current])
+        self.parts.append(PlainPart(self.line[start : self.current]))
 
     def single_quotes(self) -> None:
         start = self.current
@@ -57,7 +79,7 @@ class Parser:
             self.advance()
         # TODO Could be at end, but a single quoted string would span multiple lines. Throw?
         self.advance()
-        self.parts.append(self.line[start : self.current])
+        self.parts.append(SingleQuotePart(self.line[start : self.current]))
 
     def double_quotes(self) -> None:
         start = self.current
@@ -68,7 +90,7 @@ class Parser:
             self.advance()
         # TODO Could be at end, but a double quoted string would span multiple lines. Throw?
         self.advance()
-        self.parts.append(self.line[start : self.current])
+        self.parts.append(DoubleQuotePart(self.line[start : self.current]))
 
     def is_at_end(self) -> bool:
         return self.current >= len(self.line)

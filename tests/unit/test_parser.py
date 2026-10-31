@@ -68,3 +68,16 @@ class TestParser:
             line = 'echo "shell\'s test"'
             args = parser.parse(line)
             assert args == ["echo", "shell's test"]
+
+    class TestBackslash:
+        def test_backslash_outside_quotes(self, parser: Parser) -> None:
+            line = r"echo multiple\ \ \ \ spaces"
+            assert parser.parse(line) == ["echo", "multiple    spaces"]
+
+        def test_backslash_escapes_quotes(self, parser: Parser) -> None:
+            line = r"""echo \'\"literal quotes\"\'"""
+            assert parser.parse(line) == ["echo", "'\"literal", "quotes\"'"]
+
+        def test_backslash_before_ordinary_char(self, parser: Parser) -> None:
+            line = r"echo ignore\_backslash"
+            assert parser.parse(line) == ["echo", "ignore_backslash"]
