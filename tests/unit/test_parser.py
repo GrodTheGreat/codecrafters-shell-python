@@ -81,3 +81,14 @@ class TestParser:
         def test_backslash_before_ordinary_char(self, parser: Parser) -> None:
             line = r"echo ignore\_backslash"
             assert parser.parse(line) == ["echo", "ignore_backslash"]
+
+        def test_backslash_escapes_backslash(self, parser: Parser) -> None:
+            line = (
+                r"cat /tmp/rat/\_ignored_1 /tmp/rat/ignore_\93 /tmp/rat/just_one_\\_51"
+            )
+            assert parser.parse(line) == [
+                "cat",
+                "/tmp/rat/_ignored_1",
+                "/tmp/rat/ignore_93",
+                "/tmp/rat/just_one_\\_51",
+            ]

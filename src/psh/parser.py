@@ -42,7 +42,17 @@ class Parser:
             for part in word:
                 match part:
                     case PlainPart(value):
-                        w += "".join([c for c in value if c != "\\"])
+                        parts = []
+                        i = 0
+                        while i < len(value):
+                            c = value[i]
+                            if c == "\\":
+                                parts.append(value[i + 1])
+                                i += 1
+                            else:
+                                parts.append(value[i])
+                            i += 1
+                        w += "".join(parts)
                     case SingleQuotePart(value):
                         w += "".join([c for c in value[1:-1]])
                     case DoubleQuotePart(value):
