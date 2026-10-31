@@ -1,11 +1,14 @@
 import subprocess
 
+from psh.parser import Parser
+
 from .commands import BUILTINS, resolve_executable
 
 
-def repl_read() -> list[str]:
+def repl_read(parser: Parser) -> list[str]:
     command = input("$ ")
-    return [arg for arg in command.split() if arg]
+    args = parser.parse(command)
+    return args
 
 
 def repl_eval(args: list[str]) -> str | None:
@@ -23,8 +26,9 @@ def repl_eval(args: list[str]) -> str | None:
 
 
 def main():
+    parser = Parser()
     while True:
-        repl_eval(repl_read())
+        repl_eval(repl_read(parser))
 
 
 if __name__ == "__main__":

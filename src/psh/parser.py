@@ -1,46 +1,86 @@
-from enum import Enum, auto
-
-
-class State(Enum):
-    START = auto()
-    ESCAPED = auto()
-    WORD = auto()
-    IN_SINGLE_QUOTE = auto()
-    IN_DOUBLE_QUOTE = auto()
-    END = auto()
-
-
-class ParseError(ValueError): ...
-
-
 class Parser:
-    def __init__(self, data: str) -> None:
-        self._data = data
-        self._tokens: list[str] = []
-        self._state: State = State.START
-        self._start: int = 0
-        self._position: int = 0
+    def __init__(self) -> None:
+        self.line = ""
+        self.current = 0
+        self.words = []
+        self.parts = []
 
-    def parse(self) -> list[str]:
-        while not self._is_at_end():
-            char = self._advance()
-            if char.isspace():
-                word = self._data[self._start : self._position - 1]
-                self._tokens.append(word)
-                self._start = self._position
-        return self._tokens
+    def parse(self, line: str) -> list[str]:
+        self.__init__()
+        self.line = line
+        while not self.is_at_end():
+            self.word()
+        if self.parts:
+            self.words.append(self.parts)
+        return self.collect()
 
-    def _advance(self) -> str:
-        if self._position >= len(self._data):
+    def collect(self) -> list[str]:
+        words = []
+        for word in self.words:
+            w = ""
+            for part in word:
+                if part[0] in "'\"":
+                    # TODO this probably needs to eb more robust
+                    # Parts as ADTs?
+                    w += part[1:-1]
+                else:
+                    w += part
+            words.append(w)
+        return words
+
+    def word(self) -> None:
+        match self.peek():
+            case " " | "\r" | "\t" | "\n":
+                if self.parts:
+                    self.words.append(self.parts)
+                self.parts = []
+                self.advance()
+            case "'":
+                self.single_quotes()
+            case '"':
+                self.double_quotes()
+            case _:
+                self.plain()
+
+    def plain(self) -> None:
+        start = self.current
+        while not self.is_at_end() and self.peek() not in " \n\t\r\"'":
+            if self.peek() == "\\":
+                self.advance()
+            self.advance()
+        self.parts.append(self.line[start : self.current])
+
+    def single_quotes(self) -> None:
+        start = self.current
+        self.advance()
+        while not self.is_at_end() and self.peek() != "'":
+            self.advance()
+        # TODO Could be at end, but a single quoted string would span multiple lines. Throw?
+        self.advance()
+        self.parts.append(self.line[start : self.current])
+
+    def double_quotes(self) -> None:
+        start = self.current
+        self.advance()
+        while not self.is_at_end() and self.peek() != '"':
+            if self.peek() == "\\":
+                self.advance()
+            self.advance()
+        # TODO Could be at end, but a double quoted string would span multiple lines. Throw?
+        self.advance()
+        self.parts.append(self.line[start : self.current])
+
+    def is_at_end(self) -> bool:
+        return self.current >= len(self.line)
+
+    def peek(self) -> str:
+        if self.is_at_end():
             return ""
-        char = self._data[self._position]
-        self._position += 1
-        return char
+        return self.line[self.current]
 
-    def _is_at_end(self) -> bool:
-        return self._position >= len(self._data)
-
-    def _peek(self) -> str:
-        if self._position + 1 >= len(self._data):
-            return ""
-        return self._data[self._position + 1]
+    def advance(self) -> str:
+        if self.is_at_end():
+            raise Exception
+        character = self.line[self.current]
+        self.current += 1
+        return character
