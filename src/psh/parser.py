@@ -56,7 +56,17 @@ class Parser:
                     case SingleQuotePart(value):
                         w += "".join([c for c in value[1:-1]])
                     case DoubleQuotePart(value):
-                        w += "".join([c for c in value[1:-1]])
+                        s = value[1:-1]
+                        parts = []
+                        i = 0
+                        while i < len(s):
+                            if s[i] == "\\" and s[i + 1] in '"\\$`':
+                                parts.append(s[i + 1])
+                                i += 1
+                            else:
+                                parts.append(s[i])
+                            i += 1
+                        w += "".join(parts)
             words.append(w)
         return words
 

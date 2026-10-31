@@ -92,3 +92,33 @@ class TestParser:
                 "/tmp/rat/ignore_93",
                 "/tmp/rat/just_one_\\_51",
             ]
+
+        def test_backslash_in_single_quotes(self, parser: Parser) -> None:
+            line = r"echo 'multiple\\slashes'"
+            assert parser.parse(line) == ["echo", r"multiple\\slashes"]
+            line = r"echo 'every\"thing_is\"literal'"
+            assert parser.parse(line) == ["echo", r"every\"thing_is\"literal"]
+            line = r"cat /tmp/'no slash 1' /tmp/'one slash \2' /tmp/'two slashes \3\'"
+            assert parser.parse(line) == [
+                "cat",
+                "/tmp/no slash 1",
+                r"/tmp/one slash \2",
+                """/tmp/two slashes \\3\\""",
+            ]
+
+        def test_backslash_in_double_quotes(self, parser: Parser) -> None:
+            line = r'''echo "just'one'\\n'backslash"'''
+            assert parser.parse(line) == ["echo", "just'one'\\n'backslash"]
+
+            line = r"""echo "inside\"literal_quote."outside\""""
+            assert parser.parse(line) == ["echo", 'inside"literal_quote.outside"']
+
+            line = (
+                r'''cat /tmp/"number 1" /tmp/"doublequote \" 2" /tmp/"backslash \\ 3"'''
+            )
+            assert parser.parse(line) == [
+                "cat",
+                "/tmp/number 1",
+                '/tmp/doublequote " 2',
+                "/tmp/backslash \\ 3",
+            ]
